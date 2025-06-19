@@ -1,0 +1,77 @@
+from pyrogram import Client, filters
+from pyrogram.types import Message
+import os
+
+# === CONFIG ===
+API_ID = 11756460
+API_HASH = "fd24d30016b3bd343f635609e71020b5"
+BOT_TOKEN = "7872420234:AAF-4WJ_Jn_h7taBReGYwMFFhTD7hNf4cRc"
+OWNER_ID = 2002919767  # Your Telegram user ID
+FORCE_SUB_ID = "@Jax_Movies"  # Force join channel username
+CHANNEL_ID = -1001573789708  # Channel ID where files are stored (must be -100...)
+BOT_USERNAME = "New_Movies_1_7_9_Bot"  # without @
+
+# Create bot client
+bot = Client("file_sharing_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
+
+# Force subscription checker
+async def is_subscribed(user_id):
+    try:
+        member = await bot.get_chat_member(FORCE_SUB_ID, user_id)
+        return member.status in ["member", "administrator", "creator"]
+    except:
+        return False
+
+# Start command
+@bot.on_message(filters.command("start"))
+async def start(client, message: Message):
+    if not await is_subscribed(message.from_user.id):
+        await message.reply_text(
+            f"Please join the channel to use this bot: {FORCE_SUB_ID}"
+        )
+        return
+
+    await message.reply_text("Welcome! Send me a file and I'll give you a link to share.")
+
+# Handle documents/photos/videos
+@bot.on_message(filters.private & filters.media)
+async def save_file(client, message: Message):
+    user_id = message.from_user.id
+    if not await is_subscribed(user_id):
+        await message.reply_text(f"Join {FORCE_SUB_ID} to use this bot.")
+        return
+
+    sent = await message.copy(CHANNEL_ID)
+    file_id = sent.id
+    share_link = f"https://t.me/{BOT_USERNAME}?start=dl_{file_id}"
+    await message.reply_text(f"✅ File saved!\n🔗 Share link: {share_link}")
+
+# Handle download by start param
+@bot.on_message(filters.command("start") & filters.regex("dl_"))
+async def get_file(client, message: Message):
+    if not await is_subscribed(message.from_user.id):
+        await message.reply_text(f"Join {FORCE_SUB_ID} to access this file.")
+        return
+
+    try:
+        file_id = int(message.text.split("dl_")[1])
+        file = await bot.copy_message(
+            chat_id=message.chat.id,
+            from_chat_id=CHANNEL_ID,
+            message_id=file_id
+        )
+    except Exception as e:
+        await message.reply_text("❌ File not found or expired.")
+
+# Owner-only broadcast command (optional)
+@bot.on_message(filters.command("broadcast") & filters.user(OWNER_ID))
+async def broadcast(client, message: Message):
+    text = message.text.split(maxsplit=1)[1] if len(message.text.split()) > 1 else None
+    if not text:
+        await message.reply_text("Usage: /broadcast your_message")
+        return
+    # You can implement a user DB to send to all users (not included here)
+    await message.reply_text("📢 Broadcast feature is not yet implemented.")
+
+print("🤖 Bot is running...")
+bot.run()
