@@ -5,7 +5,7 @@ import os
 # === CONFIG ===
 API_ID = 11756460
 API_HASH = "fd24d30016b3bd343f635609e71020b5"
-BOT_TOKEN = "7872420234:AAF-4WJ_Jn_h7taBReGYwMFFhTD7hNf4cRc"
+BOT_TOKEN = "7429990827:AAHySb8M8HErrK6yinnktDTB-Kob3uIdCK4"
 OWNER_ID = 2002919767  # Your Telegram user ID
 FORCE_SUB_ID = "@Jax_Movies"  # Force join channel username
 CHANNEL_ID = -1001573789708  # Channel ID where files are stored (must be -100...)
